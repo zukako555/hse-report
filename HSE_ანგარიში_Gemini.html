@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HSE ანგარიში — მუშაობის უსაფრთხოება</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bhdr:#B8CCE4;--bhdrd:#17375E;--bord:#4472C4;--bordt:#9DC3E6;
+  --red:#C00000;--amber:#E36C09;--grn:#375623;
+  --gbg:#E2EFDA;--rbg:#FCE4D6;--abg:#FFF2CC;
+  --bg:#F0F2F5;--sur:#fff;--bui:#D0D5DD;
+  --blu:#185FA5;--blubg:#EBF4FF;--t2:#5A6472;--t3:#9AA3AE;
+}
+body{font-family:'Noto Sans Georgian',sans-serif;background:var(--bg);color:#1F2D1F;font-size:13px;line-height:1.5;min-height:100vh}
+
+/* ── TOP BAR ── */
+.top{background:var(--blu);color:#fff;display:flex;align-items:center;gap:12px;padding:0 18px;height:50px;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.tlogo{width:28px;height:28px;background:rgba(255,255,255,.18);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.tlogo svg{width:16px;height:16px}
+.ttitle{font-size:14px;font-weight:700}
+.tsep{opacity:.3;font-size:16px}
+.tsub{font-size:11px;opacity:.7}
+.tsp{flex:1}
+.tstat{text-align:center;margin:0 3px}
+.tstat-v{font-size:16px;font-weight:700}
+.tstat-l{font-size:8px;opacity:.65;text-transform:uppercase;letter-spacing:.05em}
+.tstat.D .tstat-v{color:#FF8A8A}
+.tstat.W .tstat-v{color:#FFD580}
+.tstat.G .tstat-v{color:#7EE8A2}
+
+/* API KEY BAR */
+.keybar{background:#1a2a1a;color:#fff;display:flex;align-items:center;gap:10px;padding:7px 18px;font-size:11px}
+.keybar label{opacity:.7;white-space:nowrap}
+.keybar input{flex:1;max-width:340px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:5px;padding:4px 10px;color:#fff;font-family:inherit;font-size:11px;outline:none}
+.keybar input:focus{border-color:#7EE8A2;background:rgba(255,255,255,.15)}
+.keybar input::placeholder{opacity:.4}
+.kstatus{font-size:12px;font-weight:700;min-width:16px}
+.kstatus.ok{color:#7EE8A2}
+.kstatus.bad{color:#FF8A8A}
+.kinfo{font-size:10px;opacity:.5}
+.tbtn{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:11px;font-weight:500;padding:4px 10px;border-radius:5px;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:inherit}
+.tbtn:hover{background:rgba(255,255,255,.22)}
+.tbtn svg{width:12px;height:12px}
+
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:280px 1fr;min-height:calc(100vh - 100px)}
+
+/* ── SIDEBAR ── */
+.sb{background:var(--sur);border-right:1px solid var(--bui);display:flex;flex-direction:column;overflow:hidden;height:calc(100vh - 100px);position:sticky;top:100px}
+.sbh{padding:10px 12px 8px;border-bottom:1px solid var(--bui);flex-shrink:0}
+.sbhr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.sbhr h2{font-size:11px;font-weight:700}
+.sbhr button{font-size:10px;padding:3px 8px;border:1px solid var(--bui);border-radius:5px;background:var(--bg);cursor:pointer;font-weight:600;font-family:inherit}
+.sbhr button:hover{background:var(--blubg);border-color:var(--blu);color:var(--blu)}
+.frow{display:flex;gap:3px;flex-wrap:wrap}
+.fb{font-size:10px;padding:2px 7px;border-radius:12px;border:1px solid var(--bui);background:transparent;color:var(--t2);cursor:pointer;font-family:inherit}
+.fb.on{background:var(--blubg);color:var(--blu);border-color:var(--blu)}
+.sbl{flex:1;overflow-y:auto;padding:6px}
+.sbl::-webkit-scrollbar{width:3px}
+.sbl::-webkit-scrollbar-thumb{background:var(--bui);border-radius:2px}
+.sbi{border:1px solid var(--bui);border-radius:6px;padding:8px 10px;margin-bottom:5px;cursor:pointer;transition:all .12s;background:var(--sur)}
+.sbi:hover{border-color:#A0B0C8}
+.sbi.on{border-color:var(--blu);border-width:1.5px;background:var(--blubg)}
+.sbi-top{display:flex;gap:6px;align-items:flex-start}
+.sthumb{width:40px;height:30px;border-radius:3px;object-fit:cover;border:1px solid var(--bui);flex-shrink:0}
+.snothumb{width:40px;height:30px;border-radius:3px;background:#F1F3F5;border:1px dashed var(--bui);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;opacity:.4}
+.sno{font-size:9px;color:var(--t3);min-width:16px;font-weight:700;padding-top:1px}
+.sbod{flex:1;min-width:0}
+.sloc{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px}
+.sdesc{font-size:10px;color:var(--t2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.35}
+.smeta{display:flex;align-items:center;gap:4px;margin-top:5px;flex-wrap:wrap}
+.pill{font-size:9px;font-weight:600;padding:1px 6px;border-radius:8px}
+.pill.H{background:var(--rbg);color:var(--red)}
+.pill.M{background:var(--abg);color:#996600}
+.pill.L{background:var(--gbg);color:var(--grn)}
+.pill.pend{background:var(--abg);color:#996600}
+.pill.prog{background:var(--blubg);color:var(--blu)}
+.pill.done{background:var(--gbg);color:var(--grn)}
+.sdate{font-size:9px;color:var(--t3);margin-left:auto}
+.sbadd{padding:6px;border-top:1px solid var(--bui);flex-shrink:0}
+.sbadd-btn{width:100%;padding:7px;font-size:11px;font-weight:600;border:1.5px dashed var(--bui);border-radius:6px;background:transparent;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;font-family:inherit;transition:all .13s}
+.sbadd-btn:hover{border-color:var(--blu);color:var(--blu);background:var(--blubg)}
+
+/* ── MAIN ── */
+.main{background:var(--bg);overflow-y:auto;display:flex;flex-direction:column}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:3rem;color:var(--t2)}
+.empty svg{opacity:.12;margin-bottom:4px}
+.empty h3{font-size:15px;font-weight:600;color:#333}
+.empty p{font-size:11px;line-height:1.6;max-width:220px}
+.empty button{margin-top:8px;padding:9px 20px;font-size:12px;font-weight:700;background:var(--blu);color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit}
+
+/* ── DOC ── */
+.content{padding:14px 16px}
+.dochdr{background:var(--bhdr);border:2px solid var(--bord);border-bottom:none;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.doctitle{font-size:20px;font-weight:700;color:var(--bhdrd)}
+.docmeta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.docmeta label{font-size:10px;font-weight:700;color:var(--bhdrd)}
+.docmeta input{font-family:inherit;font-size:10px;padding:2px 6px;border:1px solid var(--bordt);border-radius:3px;background:rgba(255,255,255,.7);color:var(--bhdrd);outline:none}
+.docmeta input:focus{border-color:var(--bord);background:#fff}
+
+/* ── TABLE ── */
+.twrap{overflow-x:auto;border:2px solid var(--bord)}
+table.rt{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10.5px}
+table.rt th{background:var(--bhdr);color:var(--bhdrd);font-weight:700;font-size:9.5px;padding:6px 4px;border:1px solid var(--bordt);text-align:center;vertical-align:middle;line-height:1.3}
+table.rt td{border:1px solid var(--bordt);vertical-align:top;padding:3px 4px;line-height:1.4}
+table.rt tr:nth-child(even) td{background:#f3f7fc}
+table.rt tr.ar td{background:#EBF4FF!important;outline:2px solid var(--blu);outline-offset:-1px}
+.ic{text-align:center;vertical-align:middle!important}
+.ic img{max-width:72px;max-height:54px;border-radius:3px;border:1px solid var(--bui);cursor:pointer;display:block;margin:0 auto 2px}
+.iub{display:inline-flex;align-items:center;gap:2px;font-size:8px;color:var(--blu);cursor:pointer;border:1px dashed var(--bordt);border-radius:3px;padding:2px 5px;background:rgba(24,95,165,.04);font-family:inherit}
+.iub:hover{background:var(--blubg)}
+.ssel{font-family:inherit;font-size:9px;border:1px solid var(--bordt);border-radius:3px;padding:1px 3px;background:#fff;width:100%;margin-bottom:3px}
+td[contenteditable]{outline:none;cursor:text}
+td[contenteditable]:focus{outline:2px solid var(--blu);outline-offset:-1px;background:#fff!important}
+.addrow{padding:6px;border:2px solid var(--bord);border-top:none;background:#F8FAFD}
+.addrow button{font-size:10px;padding:5px 12px;border:1.5px dashed var(--bordt);border-radius:4px;background:transparent;color:var(--bhdrd);cursor:pointer;font-weight:600;font-family:inherit}
+.addrow button:hover{background:var(--blubg);border-color:var(--bord)}
+
+/* ── BOTTOM PANEL ── */
+.bpanel{background:var(--sur);border-top:2px solid var(--bui);flex-shrink:0}
+.bptabs{display:flex;border-bottom:1px solid var(--bui)}
+.bptab{padding:9px 16px;font-size:11px;font-weight:600;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .12s;font-family:inherit;background:transparent;border-top:none;border-left:none;border-right:none}
+.bptab.on{color:var(--blu);border-bottom-color:var(--blu)}
+.bpc{padding:12px 16px;display:none;max-height:320px;overflow-y:auto}
+.bpc.on{display:block}
+.bpc::-webkit-scrollbar{width:3px}
+.bpc::-webkit-scrollbar-thumb{background:var(--bui);border-radius:2px}
+
+/* ── AI PANEL ── */
+.ai-grid{display:grid;grid-template-columns:200px 1fr;gap:12px}
+.dz{border:2px dashed var(--bui);border-radius:7px;background:#FAFBFC;text-align:center;cursor:pointer;transition:all .2s;position:relative;min-height:110px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.dz:hover,.dz.over{border-color:var(--blu);background:var(--blubg)}
+.dz.hi{padding:0;border-style:solid;border-color:var(--blu)}
+.dz input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dz img{width:100%;max-height:160px;object-fit:contain;border-radius:5px;display:block}
+.dzovl{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;border-radius:5px;opacity:0;transition:opacity .2s;pointer-events:none}
+.dz.hi:hover .dzovl{opacity:1}
+.dzovl span{color:#fff;font-size:11px;font-weight:600}
+.dztxt .dzicon{font-size:28px;opacity:.35;display:block;margin-bottom:6px}
+.dztxt p{font-size:11px;color:var(--t2);margin-bottom:3px}
+.dztxt span{font-size:9px;color:var(--t3)}
+.aibtn{width:100%;margin-top:8px;padding:9px;font-size:12px;font-weight:700;background:var(--blu);color:#fff;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;transition:background .15s}
+.aibtn:hover{background:#0C447C}
+.aibtn:disabled{background:var(--bui);cursor:not-allowed}
+.spin{animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.aistat{display:none;align-items:center;gap:7px;padding:7px 10px;border-radius:5px;background:var(--blubg);border:1px solid #B5D4F4;font-size:11px;color:#0C447C;margin-top:7px}
+.aidot{width:6px;height:6px;border-radius:50%;background:var(--blu);animation:pulse 1.4s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ── AI RESULT ── */
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.rc{background:#FAFBFC;border:1px solid var(--bui);border-radius:6px;padding:8px 10px}
+.rct{font-size:9px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.ri{display:flex;align-items:flex-start;gap:5px;margin-bottom:4px;font-size:10.5px;line-height:1.4}
+.sbar{flex:1;height:8px;background:#EEF1F4;border-radius:4px;overflow:hidden;border:1px solid var(--bui)}
+.sfill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
+.sval{font-size:16px;font-weight:700;min-width:36px;text-align:right}
+.fw{grid-column:1/-1}
+.li{padding:5px 7px;border-radius:4px;background:#fff;border-left:3px solid var(--blu);margin-bottom:4px;font-size:10px;line-height:1.4}
+.li .lc{font-size:8.5px;font-weight:700;color:var(--blu);margin-bottom:1px}
+.li.int{border-left-color:#6B4FBB}
+.li.int .lc{color:#6B4FBB}
+
+/* ── LAW ── */
+.ls{margin-bottom:12px}
+.lst{font-size:10px;font-weight:700;color:var(--bhdrd);border-bottom:2px solid var(--bhdr);padding-bottom:3px;margin-bottom:6px}
+.litem{padding:6px 8px;border-radius:4px;border:1px solid var(--bui);background:#fff;margin-bottom:4px;display:flex;gap:7px;align-items:flex-start}
+.lcb{font-size:8px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap;flex-shrink:0;margin-top:1px}
+.lcb.ge{background:#003F7D;color:#fff}
+.lcb.iso{background:#6B4FBB;color:#fff}
+.lcb.ilo{background:#009A44;color:#fff}
+.lcb.eu{background:#003F87;color:#fff}
+.ld{font-size:10px;line-height:1.45}
+.la{font-size:9px;color:var(--t2);margin-top:1px}
+
+/* ── MATRIX ── */
+.mt{border-collapse:collapse;font-size:9.5px}
+.mt td,.mt th{border:1px solid var(--bui);padding:5px 7px;text-align:center;min-width:55px}
+.mt th{background:var(--bhdr);color:var(--bhdrd);font-weight:700}
+.mVL,.mL{background:#E2EFDA;color:#375623;font-weight:600}
+.mM{background:#FFF2CC;color:#996600;font-weight:600}
+.mH{background:#FCE4D6;color:#C00000;font-weight:600}
+.mVH{background:#C00000;color:#fff;font-weight:600}
+
+/* ── MODAL ── */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;display:none;align-items:center;justify-content:center}
+.modal.on{display:flex}
+.modal img{max-width:90vw;max-height:85vh;border-radius:6px;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+.modal .cx{position:absolute;top:14px;right:18px;color:#fff;font-size:28px;cursor:pointer;line-height:1}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:18px;right:18px;background:#1a1a1a;color:#fff;padding:8px 16px;border-radius:7px;font-size:11px;font-weight:600;z-index:9999;transform:translateY(14px);opacity:0;transition:all .22s;pointer-events:none}
+.toast.on{transform:translateY(0);opacity:1}
+.toast.ok{background:#375623}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top">
+  <div class="tlogo"><svg viewBox="0 0 16 16" fill="none"><path d="M8 1.5L2 5.5v5L8 14.5l6-4v-5L8 1.5z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.5v3M8 11v.3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+  <span class="ttitle">მუშაობის უსაფრთხოება</span>
+  <span class="tsep">|</span>
+  <span class="tsub">HSE ანგარიში · Gemini AI</span>
+  <div class="tsp"></div>
+  <div class="tstat D"><div class="tstat-v" id="cH">0</div><div class="tstat-l">მაღალი</div></div>
+  <div class="tstat W"><div class="tstat-v" id="cM">0</div><div class="tstat-l">საშუალო</div></div>
+  <div class="tstat G"><div class="tstat-v" id="cL">0</div><div class="tstat-l">დაბალი</div></div>
+  <button class="tbtn" onclick="doExport()"><svg viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3.5 5.5L6 8l2.5-2.5M1.5 10h9" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg>CSV</button>
+  <button class="tbtn" onclick="window.print()"><svg viewBox="0 0 12 12" fill="none"><rect x="1.5" y="4" width="9" height="6" rx="1" stroke="white" stroke-width="1.2"/><path d="M3.5 4V2h5v2M3.5 8.5h5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>ბეჭდვა</button>
+</div>
+
+<!-- API KEY BAR -->
+<div class="keybar">
+  <label>🔑 Gemini API Key:</label>
+  <input type="password" id="apikey" placeholder="AIzaSy..." autocomplete="off" oninput="saveKey(this.value)">
+  <span class="kstatus" id="kst"></span>
+  <span class="kinfo">aistudio.google.com → Get API Key (უფასო)</span>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+<!-- SIDEBAR -->
+<div class="sb">
+  <div class="sbh">
+    <div class="sbhr"><h2>საფრთხეები (<span id="rc">0</span>)</h2><button onclick="addRow()">+ ახალი</button></div>
+    <div class="frow">
+      <button class="fb on" onclick="setF('all',this)">ყველა</button>
+      <button class="fb" onclick="setF('H',this)">მაღალი</button>
+      <button class="fb" onclick="setF('M',this)">საშუალო</button>
+      <button class="fb" onclick="setF('L',this)">დაბალი</button>
+      <button class="fb" onclick="setF('pend',this)">ღია</button>
+    </div>
+  </div>
+  <div class="sbl" id="sbl"></div>
+  <div class="sbadd"><button class="sbadd-btn" onclick="addRow()">+ ახალი ჩანაწერი</button></div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <div class="empty" id="emp">
+    <svg width="56" height="56" viewBox="0 0 56 56" fill="none"><path d="M28 6L6 19v18l22 13 22-13V19L28 6z" stroke="#333" stroke-width="2.5" stroke-linejoin="round"/><path d="M28 24v8M28 34v2" stroke="#333" stroke-width="2.5" stroke-linecap="round"/></svg>
+    <h3>ჩანაწერი არ არის არჩეული</h3>
+    <p>მარცხნიდან აირჩიეთ ან დაამატეთ ახალი საფრთხე</p>
+    <button onclick="addRow()">+ ახალი საფრთხე</button>
+  </div>
+
+  <div id="con" style="display:none">
+    <div class="content">
+      <div class="dochdr">
+        <div class="doctitle">ანგარიში</div>
+        <div class="docmeta">
+          <label>შემსრულებელი:</label><input id="hexec" placeholder="სახელი გვარი" style="width:110px">
+          <label>თარიღი:</label><input id="hdate" type="date">
+          <label>ობიექტი:</label><input id="hobj" placeholder="ქარხანა" style="width:100px">
+        </div>
+      </div>
+      <div class="twrap">
+        <table class="rt">
+          <colgroup>
+            <col style="width:28px"><col style="width:70px"><col style="width:105px">
+            <col style="width:75px"><col style="width:160px"><col style="width:82px">
+            <col style="width:150px"><col style="width:65px"><col style="width:68px">
+            <col style="width:76px"><col style="width:115px">
+          </colgroup>
+          <thead><tr>
+            <th>No</th><th>Date</th><th>ადგილი</th><th>შემსრულებელი</th>
+            <th>დეტალური აღწერა</th><th>სურათი</th>
+            <th>კონტრზომები (რა უნდა გავაკეთოთ?)</th>
+            <th>ვის მიერ</th><th>ვადა</th><th>სტატუსი</th><th>კომენტარი</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="addrow"><button onclick="addRow()">+ ახალი მწკრივის დამატება</button></div>
+    </div>
+
+    <!-- BOTTOM PANEL -->
+    <div class="bpanel">
+      <div class="bptabs">
+        <button class="bptab on" onclick="bpTab('ai',this)">🤖 AI ანალიზი + სურათი</button>
+        <button class="bptab" onclick="bpTab('law',this)">⚖️ კანონმდებლობა</button>
+        <button class="bptab" onclick="bpTab('mat',this)">📊 რისკ-მატრიცა</button>
+      </div>
+
+      <!-- AI TAB -->
+      <div class="bpc on" id="bp-ai">
+        <div class="ai-grid">
+          <div>
+            <div class="dz" id="dz">
+              <input type="file" id="aif" accept="image/*" onchange="handleImg(this.files[0])">
+              <div class="dztxt" id="dzt">
+                <span class="dzicon">📷</span>
+                <p><strong>სურათი ჩააგდეთ</strong></p>
+                <span>JPG · PNG · WEBP</span>
+              </div>
+              <img id="aiprev" style="display:none" alt="preview">
+              <div class="dzovl"><span>სურათის შეცვლა</span></div>
+            </div>
+            <button class="aibtn" id="aibtn" disabled onclick="runAI()">
+              <svg viewBox="0 0 16 16" fill="none" width="16" height="16"><path d="M8 1.5L2 5.5v5L8 14.5l6-4v-5L8 1.5z" stroke="white" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 6.5v3M8 11v.3" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg>
+              Gemini AI ანალიზი
+            </button>
+            <div class="aistat" id="aistat">
+              <div class="aidot"></div>
+              <span id="aistxt">Gemini სკანირებს...</span>
+            </div>
+          </div>
+          <div id="aire">
+            <div style="color:var(--t3);font-size:11px;padding:2.5rem 0;text-align:center;line-height:1.8">
+              სურათი ჩააგდეთ მარცხნივ<br>
+              <strong style="color:var(--blu);font-size:12px">Gemini AI ავტომატურად შეავსებს ყველა ველს</strong><br>
+              <span style="font-size:10px">რისკ-ქულა · კანონმდებლობა · პრევენცია · PPE</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LAW TAB -->
+      <div class="bpc" id="bp-law"><div id="lawc"></div></div>
+
+      <!-- MATRIX TAB -->
+      <div class="bpc" id="bp-mat">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--bhdrd);margin-bottom:8px">რისკის მატრიცა (ISO 31000:2018)</div>
+            <table class="mt">
+              <tr><th>შედეგი↓ / ალბ→</th><th>იშვიათი(1)</th><th>შეიძლ(2)</th><th>ხშირი(3)</th><th>ძ.ხშ(4)</th></tr>
+              <tr><th>კრიტიკული (4)</th><td class="mH">H</td><td class="mVH">VH</td><td class="mVH">VH</td><td class="mVH">VH</td></tr>
+              <tr><th>მნიშვნელ. (3)</th><td class="mM">M</td><td class="mH">H</td><td class="mH">H</td><td class="mVH">VH</td></tr>
+              <tr><th>საშუალო (2)</th><td class="mL">L</td><td class="mM">M</td><td class="mH">H</td><td class="mH">H</td></tr>
+              <tr><th>მცირე (1)</th><td class="mVL">VL</td><td class="mL">L</td><td class="mM">M</td><td class="mM">M</td></tr>
+            </table>
+            <div style="font-size:9px;color:var(--t2);margin-top:6px;line-height:1.7"><b>VH</b> — სასწ. შეჩ. · <b>H</b> — 24სთ · <b>M</b> — 7 დღე · <b>L/VL</b> — გეგმური</div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--bhdrd);margin-bottom:8px">კონტროლის იერარქია (ISO 45001)</div>
+            <div id="hier"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="modal" id="imod" onclick="closeM()"><span class="cx">×</span><img id="imsrc" alt=""></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════ DATA ════════════
+const INIT=[
+  {id:1,no:1,date:'08.30.2025',loc:'თევზის განთავსების ადგილი (ჩანი)',exec:'თამაზ ჭყონია',
+   desc:'თვითმზიდის საშუალებით ხდება ჩანში თევზის ჩაყრა. ელევატორის გამოყენებით გადატანა სახარში ქვაბში. ერთი მუშა ემსახურება — მაღალია ჩავარდნის ალბათობა.',
+   img:null,cnt:'სავალდებულო იდს: ს/ვ ქამარი, ჩექმა, ხელთათმანი, ჩაფხუტი. ქამრის მისამგრებელი ტროსი. ელევატორის ავტო-გათიშვა.',
+   who:'დირექტორი',when:'სამუშ. დაწყ-მდე',stat:'pend',cmt:'პრაქტიკაში დაკვირვება გვაჩვენებს უხილავ საფრთხეებს.',lv:'H'},
+  {id:2,no:2,date:'08.30.2025',loc:'მაღალი ძაბვის ტრანსფორმატორი',exec:'თამაზ ჭყონია',
+   desc:'სხვადასხვა სახის რკინის მასალა მიმოფანტულია მაღალი ძაბვის ზონაში — ელექტრო-საფრთხე.',
+   img:null,cnt:'დახარისხება, დალაგება. ზონის სავალდ. მარკირება და შემოღობვა.',who:'დირექტორი',when:'?',stat:'pend',cmt:'',lv:'H'},
+  {id:3,no:3,date:'08.30.2025',loc:'ქარხნის აბაზანა',exec:'თამაზ ჭყონია',
+   desc:'აბაზანა ანტისანიტარიულ მდგომარეობაშია — დაავადების გავრცელების რისკი.',
+   img:null,cnt:'სარემონტო სამუშაოები. რეგულარული დეზინფექცია.',who:'დირექტორი',when:'?',stat:'pend',cmt:'სანიტ. ნორმების დაცვა სავალდებულოა.',lv:'M'},
+  {id:4,no:4,date:'08.30.2025',loc:'სანიაღვრე არხი',exec:'თამაზ ჭყონია',
+   desc:'სანიაღვრე არხი არასწორი მასალით დაფარული — წაბორძიკების საფრთხე.',
+   img:null,cnt:'სრიალისგან დაცული, გამძლე მასალით გადახურვა.',who:'დირექტორი',when:'?',stat:'pend',cmt:'',lv:'M'},
+  {id:5,no:5,date:'08.30.2025',loc:'გარე კაბელ-არხები',exec:'თამაზ ჭყონია',
+   desc:'კაბელ-არხები არასაიმედო მდგომარეობაშია — დაზიანებისა და უბედური შემთხვ. რისკი.',
+   img:null,cnt:'სრული ინსპექტირება. წყალგამძლე სტანდარტ. მასალის გამოყენება.',who:'დირექტორი',when:'?',stat:'pend',cmt:'',lv:'M'},
+  {id:6,no:6,date:'08.30.2025',loc:'გარე განათება',exec:'თამაზ ჭყონია',
+   desc:'განათება არასაკმარისია — სახიფათო შემთხვევების რისკი.',
+   img:null,cnt:'დამატებითი სხივების მონტაჟი შესასვლელებსა და საშიშ ზონებში.',who:'დირექტორი',when:'?',stat:'pend',cmt:'',lv:'L'},
+  {id:7,no:7,date:'08.30.2025',loc:'ფიზ. ფაქტ. გაზომვა',exec:'თამაზ ჭყონია',
+   desc:'ხმაური, ტემპ., ვიბრ., განათ., ტენ. — გაუზომველი ფიზ. ფაქტორები.',
+   img:null,cnt:'აკრედიტ. კომპანიის მოწვევა გაზომვებისა და ანგარიშისათვის.',who:'დირექტორი',when:'?',stat:'pend',cmt:'',lv:'L'},
+];
+
+const LAWS={
+  geo:[
+    {code:'N2070 — 2018',art:'კანონი „შრომის უსაფრთხ."',desc:'სამ. ადგ. უსაფრთ., საფ. შეფასება, დამს. ვალდ., პრევენცია.'},
+    {code:'შრ. კოდ. მ.6',art:'შრომის კოდექსი',desc:'დამს. ვალდ.: უსაფრთ. სამ. ადგ., ინსტრუქტ., იდს-ის მიწოდება.'},
+    {code:'N217 — 2019',art:'ტექ. ნორმები',desc:'განათ., ვენტ., ტემპ., ელ. უსაფრთ., სანიტ. მინ. მოთხ.'},
+    {code:'N415',art:'ფიზ. ფაქტ. ნორმები',desc:'ხმ., ვიბრ., ტემპ., ტენ., განათ. — დასაშვები ლიმიტები.'},
+    {code:'N1220',art:'ელ. რეგლამენტი',desc:'მაღ. ძაბ. მოწყ. ექსპლ.: ზ. მარკ., შეზღუდ., ინსტ.'},
+  ],
+  iso:[
+    {code:'ISO 45001:2018',art:'OH&S Management',desc:'სამ. ადგ. ჯანმრთ. და უსაფრთ. სისტ. PDCA. საფ. იდ.+შეფ.+კონტ.'},
+    {code:'ISO 31000:2018',art:'Risk Management',desc:'რისკ. მართ.: ალბ.×სიმძ. მატრ., ნარჩ. რისკი, მონ.'},
+    {code:'ISO 14001:2015',art:'Environmental Mgmt',desc:'გარ. დაც. სისტ.: საშ. ნ-ბ. ჩაღ. პრ., ნარჩ. მართ.'},
+    {code:'IEC 60364',art:'Electrical Installations',desc:'დაბ. ძაბ. ელ. ინსტ.: კაბ. ტექ. მდგ., დამ., სტ.'},
+  ],
+  ilo:[
+    {code:'ILO C155',art:'OSH Convention 1981',desc:'ეროვ. პოლ., დამს. ვალდ., სასწ. გათ. — მუშ. უფლება.'},
+    {code:'ILO C187',art:'Framework Convention',desc:'ეროვ. ჩარჩო შრ. უსაფ., სახ. ზედ., სტატ.'},
+    {code:'ILO P155',art:'Recording Protocol',desc:'ავ.+შემთ. რეგ. და ანგ. სახ. ორგ.'},
+  ],
+  eu:[
+    {code:'EU 89/391',art:'Framework Directive',desc:'საფ. შეფ., მუშ. ინფ., ტრენ. — ჩარჩო დირ.'},
+    {code:'EU 2009/104',art:'Work Equipment Dir.',desc:'სამ. დანდ. მინ. სტ.: ინსპ. ვ., დამც. მოწ.'},
+    {code:'EN ISO 7010',art:'Safety Signs',desc:'საფ. ნიშნ. სტ.: გაფ., სავ., ევ. ნ. — ვიზ. კომ.'},
+  ]
+};
+
+const HIER=[
+  {e:'🚫',l:'1. აღმოფხვრა',d:'საფრთხის სრული მოხსნა',c:'#C00000'},
+  {e:'🔄',l:'2. ჩანაცვლება',d:'საშიშის უსაფრთხოთი შეცვლა',c:'#E36C09'},
+  {e:'🛡',l:'3. ინჟ. კონტ.',d:'იზოლ., ეკრ., ავტომ.',c:'#996600'},
+  {e:'📋',l:'4. ადმ. კონტ.',d:'ინსტრ., პროც., ჩ.ვ.',c:'#375623'},
+  {e:'🦺',l:'5. იდს (PPE)',d:'ბოლო საშ. — ინდ. დაც.',c:'#185FA5'},
+];
+
+let recs = JSON.parse(localStorage.getItem('hse_recs')||'null') || INIT.map(r=>({...r}));
+let nid = Math.max(...recs.map(r=>r.id))+1;
+let aid = null;
+let flt = 'all';
+let aib64 = null;
+
+const lv={H:'მაღალი',M:'საშუალო',L:'დაბალი'};
+const sl={pend:'მოსაგვ.',prog:'მიმდ.',done:'შესრ.'};
+
+function save(){ localStorage.setItem('hse_recs', JSON.stringify(recs)); }
+
+// ════════════ API KEY ════════════
+function saveKey(v){
+  v=v.trim();
+  localStorage.setItem('hse_gemini_key',v);
+  const s=document.getElementById('kst');
+  if(v.startsWith('AIza')&&v.length>20){s.textContent='✓';s.className='kstatus ok';}
+  else if(v.length>0){s.textContent='?';s.className='kstatus bad';}
+  else{s.textContent='';s.className='kstatus';}
+}
+
+// ════════════ FILTER ════════════
+function filt(){
+  if(flt==='all') return recs;
+  if(['H','M','L'].includes(flt)) return recs.filter(r=>r.lv===flt);
+  return recs.filter(r=>r.stat==='pend');
+}
+
+// ════════════ RENDER ════════════
+function renderSB(){
+  const fr=filt();
+  document.getElementById('rc').textContent=recs.length;
+  document.getElementById('cH').textContent=recs.filter(r=>r.lv==='H').length;
+  document.getElementById('cM').textContent=recs.filter(r=>r.lv==='M').length;
+  document.getElementById('cL').textContent=recs.filter(r=>r.lv==='L').length;
+  if(!fr.length){document.getElementById('sbl').innerHTML='<div style="text-align:center;padding:2rem;font-size:10px;color:var(--t3)">ჩანაწერი არ არის</div>';return;}
+  document.getElementById('sbl').innerHTML=fr.map(r=>`
+    <div class="sbi${r.id===aid?' on':''}" onclick="sel(${r.id})">
+      <div class="sbi-top">
+        ${r.img?`<img class="sthumb" src="${r.img}" alt="">`:`<div class="snothumb">📷</div>`}
+        <div class="sno">${String(r.no).padStart(2,'0')}</div>
+        <div class="sbod">
+          <div class="sloc">${r.loc||'–'}</div>
+          <div class="sdesc">${r.desc||'–'}</div>
+          <div class="smeta">
+            <span class="pill ${r.lv}">${lv[r.lv]||'–'}</span>
+            <span class="pill ${r.stat}">${sl[r.stat]||'–'}</span>
+            <span class="sdate">${r.date||''}</span>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderTbl(){
+  document.getElementById('tbody').innerHTML=recs.map(r=>`
+    <tr id="r${r.id}" class="${r.id===aid?'ar':''}" onclick="sel(${r.id})">
+      <td style="text-align:center;font-weight:700;font-size:11px">${r.no}</td>
+      <td contenteditable onblur="upd(${r.id},'date',this.innerText)">${r.date||''}</td>
+      <td contenteditable onblur="upd(${r.id},'loc',this.innerText)">${r.loc||''}</td>
+      <td contenteditable onblur="upd(${r.id},'exec',this.innerText)">${r.exec||''}</td>
+      <td contenteditable onblur="upd(${r.id},'desc',this.innerText)">${r.desc||''}</td>
+      <td class="ic">
+        ${r.img
+          ?`<img src="${r.img}" onclick="openM(event,'${r.img}')" alt=""><label class="iub" onclick="event.stopPropagation()"><input type="file" accept="image/*" style="display:none" onchange="rowImg(${r.id},this.files[0])">✎ შეცვ.</label>`
+          :`<label class="iub"><input type="file" accept="image/*" style="display:none" onchange="rowImg(${r.id},this.files[0])">📷 სურ.</label>`
+        }
+      </td>
+      <td contenteditable onblur="upd(${r.id},'cnt',this.innerText)">${r.cnt||''}</td>
+      <td contenteditable onblur="upd(${r.id},'who',this.innerText)">${r.who||''}</td>
+      <td contenteditable onblur="upd(${r.id},'when',this.innerText)">${r.when||''}</td>
+      <td>
+        <select class="ssel" onchange="upd(${r.id},'stat',this.value)" onclick="event.stopPropagation()">
+          <option value="pend"${r.stat==='pend'?' selected':''}>მოსაგ.</option>
+          <option value="prog"${r.stat==='prog'?' selected':''}>მიმდ.</option>
+          <option value="done"${r.stat==='done'?' selected':''}>შესრ.</option>
+        </select>
+        <select class="ssel" style="background:${r.lv==='H'?'#FCE4D6':r.lv==='M'?'#FFF2CC':'#E2EFDA'}" onchange="upd(${r.id},'lv',this.value)" onclick="event.stopPropagation()">
+          <option value="H"${r.lv==='H'?' selected':''}>🔴 მაღ</option>
+          <option value="M"${r.lv==='M'?' selected':''}>🟡 საშ</option>
+          <option value="L"${r.lv==='L'?' selected':''}>🟢 დაბ</option>
+        </select>
+      </td>
+      <td contenteditable onblur="upd(${r.id},'cmt',this.innerText)">${r.cmt||''}</td>
+    </tr>`).join('');
+}
+
+function renderLaw(){
+  const secs=[
+    {t:'🇬🇪 საქართველოს კანონმდებლობა',items:LAWS.geo,cls:'ge'},
+    {t:'🌐 ISO / IEC სტანდარტები',items:LAWS.iso,cls:'iso'},
+    {t:'🌍 ILO კონვენციები',items:LAWS.ilo,cls:'ilo'},
+    {t:'🇪🇺 EU დირექტივები',items:LAWS.eu,cls:'eu'},
+  ];
+  document.getElementById('lawc').innerHTML=secs.map(s=>`
+    <div class="ls"><div class="lst">${s.t}</div>
+    ${s.items.map(l=>`<div class="litem"><span class="lcb ${s.cls}">${l.code}</span><div><div class="ld">${l.desc}</div><div class="la">${l.art}</div></div></div>`).join('')}
+    </div>`).join('');
+}
+
+function renderHier(){
+  document.getElementById('hier').innerHTML=HIER.map(h=>`
+    <div style="display:flex;gap:7px;align-items:flex-start;margin-bottom:5px;padding:6px 8px;background:#fff;border:1px solid var(--bui);border-radius:4px;border-left:3px solid ${h.c}">
+      <span style="font-size:14px">${h.e}</span>
+      <div><div style="font-size:10px;font-weight:700;color:${h.c}">${h.l}</div><div style="font-size:9px;color:var(--t2)">${h.d}</div></div>
+    </div>`).join('');
+}
+
+function renderAll(){ renderSB(); renderTbl(); renderLaw(); renderHier(); }
+
+// ════════════ SELECT ════════════
+function sel(id){
+  aid=id;
+  document.getElementById('emp').style.display='none';
+  document.getElementById('con').style.display='block';
+  renderAll();
+  setTimeout(()=>{const el=document.getElementById('r'+id);if(el)el.scrollIntoView({block:'nearest',behavior:'smooth'});},60);
+  const r=recs.find(x=>x.id===id);
+  if(r&&r.img){
+    const p=document.getElementById('aiprev');
+    p.src=r.img; p.style.display='block';
+    document.getElementById('dzt').style.display='none';
+    document.getElementById('dz').classList.add('hi');
+    document.getElementById('aibtn').disabled=false;
+    aib64=r.img;
+  } else {
+    document.getElementById('aiprev').style.display='none';
+    document.getElementById('dzt').style.display='block';
+    document.getElementById('dz').classList.remove('hi');
+    document.getElementById('aibtn').disabled=true;
+    aib64=null;
+  }
+}
+
+function addRow(){
+  const r={id:nid++,no:recs.length+1,date:new Date().toLocaleDateString('ka-GE'),
+    loc:'',exec:'',desc:'',img:null,cnt:'',who:'',when:'',stat:'pend',cmt:'',lv:'M'};
+  recs.push(r); save(); sel(r.id); toast('ახალი მწკრივი დაემატა');
+}
+
+function setF(f,btn){
+  flt=f;
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderSB();
+}
+
+function upd(id,f,v){
+  const r=recs.find(x=>x.id===id);
+  if(r){r[f]=v.trim(); save(); renderSB();}
+}
+
+// ════════════ IMAGES ════════════
+function rowImg(id,file){
+  if(!file)return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    const r=recs.find(x=>x.id===id);
+    if(r){r.img=e.target.result; save(); renderAll();}
+    toast('სურათი დაემატა','ok');
+  };
+  rd.readAsDataURL(file);
+}
+
+function handleImg(file){
+  if(!file)return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    const src=e.target.result;
+    const p=document.getElementById('aiprev');
+    p.src=src; p.style.display='block';
+    document.getElementById('dzt').style.display='none';
+    document.getElementById('dz').classList.add('hi');
+    document.getElementById('aibtn').disabled=false;
+    aib64=src;
+    if(aid){const r=recs.find(x=>x.id===aid);if(r){r.img=src; save(); renderAll();}}
+  };
+  rd.readAsDataURL(file);
+}
+
+const dz=document.getElementById('dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+dz.addEventListener('drop',e=>{
+  e.preventDefault(); dz.classList.remove('over');
+  const f=e.dataTransfer.files[0]; if(f)handleImg(f);
+});
+
+// ════════════ TABS ════════════
+function bpTab(id,btn){
+  document.querySelectorAll('.bptab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.bpc').forEach(c=>c.classList.remove('on'));
+  document.getElementById('bp-'+id).classList.add('on');
+}
+
+// ════════════ GEMINI AI ════════════
+async function runAI(){
+  if(!aib64) return;
+  const apiKey = localStorage.getItem('hse_gemini_key')||document.getElementById('apikey').value.trim();
+  if(!apiKey||!apiKey.startsWith('AIza')){
+    toast('⚠ შეიყვანეთ Gemini API Key ზედა ველში');
+    document.getElementById('apikey').focus();
+    return;
+  }
+
+  const btn=document.getElementById('aibtn');
+  const stat=document.getElementById('aistat');
+  btn.disabled=true;
+  btn.innerHTML='<svg class="spin" viewBox="0 0 16 16" fill="none" width="16"><path d="M8 2v2.5M8 11.5V14M2 8h2.5M11.5 8H14M3.5 3.5l1.8 1.8M10.7 10.7l1.8 1.8M3.5 12.5l1.8-1.8M10.7 5.3l1.8-1.8" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg> ანალიზი...';
+  stat.style.display='flex';
+  document.getElementById('aistxt').textContent='Gemini სურათს სკანირებს...';
+
+  const b64 = aib64.includes(',') ? aib64.split(',')[1] : aib64;
+  const mt = aib64.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
+
+  const prompt = `შენ ხარ ISO 45001 სერტიფიცირებული HSE Lead Auditor. გაანალიზე სამუშაო ადგილის სურათი.
+კანონ. კონტ.: საქ. N2070-2018, შრ.კოდ. მ.6, N217, N415, N1220; ISO 45001:2018, ISO 31000:2018; ILO C155; EU 89/391.
+დააბრუნე ᲛᲮᲝᲚᲝᲓ JSON (სხვა ტექსტი, markdown, backtick არ):
+{"loc":"ადგ/ზ სახელი","desc":"2-4 წინ. ქართ. აღწ.","lv":"H ან M ან L","risk_score":0-100,"prob":"მაღ/საშ/დაბ","sev":"კრიტ/მნიშვ/საშ/მცირე","cnt":"კონტრზომ. ტექსტი","who":"პასუხ.","when":"ვადა","cmt":"შენ.","imm":["სასწ.1","სასწ.2","სასწ.3"],"short":["7დღ.1","7დღ.2"],"long":["გრძ.1","გრძ.2"],"geo":[{"c":"კოდი","d":"აღ."}],"intl":[{"c":"სტ.","d":"აღ."}],"ppe":["იდს1","იდს2"]}`;
+
+  try{
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          contents:[{parts:[
+            {inline_data:{mime_type:mt, data:b64}},
+            {text:prompt}
+          ]}],
+          generationConfig:{temperature:0.2, maxOutputTokens:1500}
+        })
+      }
+    );
+    if(!resp.ok){
+      const err=await resp.json().catch(()=>({}));
+      throw new Error(err?.error?.message||'HTTP '+resp.status);
+    }
+    const data=await resp.json();
+    const raw=(data.candidates?.[0]?.content?.parts?.[0]?.text||'').replace(/```json|```/g,'').trim();
+    const res=JSON.parse(raw);
+
+    // fill row
+    if(aid){
+      const r=recs.find(x=>x.id===aid);
+      if(r){
+        if(res.loc) r.loc=res.loc;
+        if(res.desc) r.desc=res.desc;
+        if(res.lv) r.lv=res.lv;
+        if(res.cnt) r.cnt=res.cnt;
+        if(res.who) r.who=res.who;
+        if(res.when) r.when=res.when;
+        if(res.cmt) r.cmt=res.cmt;
+        save(); renderAll();
+      }
+    }
+
+    const sc={H:'#C00000',M:'#E36C09',L:'#375623'}[res.lv]||'#E36C09';
+    document.getElementById('aire').innerHTML=`
+      <div class="rg">
+        <div class="rc">
+          <div class="rct">რისკის შეფასება</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <div class="sbar"><div class="sfill" style="width:${res.risk_score||0}%;background:${sc}"></div></div>
+            <div class="sval" style="color:${sc}">${res.risk_score||0}%</div>
+          </div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">
+            <span class="pill ${res.lv||'M'}">${lv[res.lv]||'–'}</span>
+            <span style="font-size:9px;color:var(--t2)">ალბ: ${res.prob||'–'} · სიმძ: ${res.sev||'–'}</span>
+          </div>
+          <div class="rct" style="margin-top:4px">სასწრაფო ზომები</div>
+          ${(res.imm||[]).map(a=>`<div class="ri"><span style="color:#C00000;flex-shrink:0;font-weight:700">!</span>${a}</div>`).join('')}
+        </div>
+        <div class="rc">
+          <div class="rct">პრევენცია</div>
+          ${(res.short||[]).map(a=>`<div class="ri"><span style="color:var(--amber);flex-shrink:0">→</span>${a}</div>`).join('')}
+          ${(res.long||[]).map(a=>`<div class="ri"><span style="color:var(--grn);flex-shrink:0">✓</span>${a}</div>`).join('')}
+          <div class="rct" style="margin-top:6px">იდს (PPE)</div>
+          ${(res.ppe||[]).map(p=>`<div class="ri"><span style="flex-shrink:0">🦺</span>${p}</div>`).join('')}
+        </div>
+        <div class="rc fw">
+          <div class="rct">კანონმდებლობა & საერთ. სტანდარტები</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <div><div style="font-size:8px;font-weight:700;color:var(--t3);margin-bottom:3px;text-transform:uppercase">🇬🇪 ქართ. კანონი</div>${(res.geo||[]).map(l=>`<div class="li"><div class="lc">${l.c}</div>${l.d}</div>`).join('')}</div>
+            <div><div style="font-size:8px;font-weight:700;color:var(--t3);margin-bottom:3px;text-transform:uppercase">🌐 საერთ. სტანდ.</div>${(res.intl||[]).map(l=>`<div class="li int"><div class="lc">${l.c}</div>${l.d}</div>`).join('')}</div>
+          </div>
+        </div>
+      </div>`;
+
+    document.getElementById('aistxt').textContent='✓ Gemini ანალიზი დასრულდა — ველები შეივსო';
+    setTimeout(()=>{stat.style.display='none';},3500);
+    toast('Gemini AI ანალიზი დასრულდა ✓','ok');
+  }catch(e){
+    document.getElementById('aistxt').textContent='შეცდომა: '+e.message;
+    setTimeout(()=>{stat.style.display='none';},5000);
+    toast('შეცდომა: '+e.message);
+  }
+  btn.disabled=false;
+  btn.innerHTML='<svg viewBox="0 0 16 16" fill="none" width="16"><path d="M8 1.5L2 5.5v5L8 14.5l6-4v-5L8 1.5z" stroke="white" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 6.5v3M8 11v.3" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg> ხელახლა ანალიზი';
+}
+
+// ════════════ EXPORT ════════════
+function doExport(){
+  const h=['No','Date','ადგილი','შემსრ.','აღწერა','კონტრზომები','ვის მიერ','ვადა','სტატ.','კომ.','რისკი'];
+  const rows=recs.map(r=>[r.no,r.date,r.loc,r.exec,r.desc,r.cnt,r.who,r.when,sl[r.stat]||r.stat,r.cmt,lv[r.lv]||r.lv]);
+  const csv=[h,...rows].map(r=>r.map(c=>'"'+(c||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download='HSE_ანგარიში.csv'; a.click();
+  toast('CSV ჩამოიტვირთა ✓','ok');
+}
+
+function openM(e,src){e.stopPropagation();document.getElementById('imsrc').src=src;document.getElementById('imod').classList.add('on');}
+function closeM(){document.getElementById('imod').classList.remove('on');}
+
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast on'+(type?' '+type:'');
+  setTimeout(()=>{t.className='toast';},2800);
+}
+
+// ════════════ INIT ════════════
+const sk=localStorage.getItem('hse_gemini_key')||'';
+if(sk){document.getElementById('apikey').value=sk; saveKey(sk);}
+document.getElementById('hdate').value=new Date().toISOString().slice(0,10);
+document.getElementById('hexec').value='თამაზ ჭყონია';
+document.getElementById('hobj').value='ქარხანა';
+renderAll();
+sel(1);
+</script>
+</body>
+</html>
