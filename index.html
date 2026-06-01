@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HSE ანგარიში — უსაფრთხოება</title>
+<title>HSE ანგარიში — მუშაობის უსაფრთხოება</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -186,7 +186,7 @@ td[contenteditable]:focus{outline:2px solid var(--blu);outline-offset:-1px;backg
 
 <div class="top">
   <div class="tlogo"><svg viewBox="0 0 16 16" fill="none"><path d="M8 1.5L2 5.5v5L8 14.5l6-4v-5L8 1.5z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.5v3M8 11v.3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-  <span class="ttitle">უსაფრთხოება</span>
+  <span class="ttitle">მუშაობის უსაფრთხოება</span>
   <span class="tsep">|</span>
   <span class="tsub">HSE ანგარიში</span>
   <div class="tsp"></div>
@@ -251,7 +251,7 @@ td[contenteditable]:focus{outline:2px solid var(--blu);outline-offset:-1px;backg
             <col style="width:76px"><col style="width:115px">
           </colgroup>
           <thead><tr>
-            <th>No</th><th>თარიღი</th><th>ადგილი</th><th>შემსრულებელი</th>
+            <th>No</th><th>Date</th><th>ადგილი</th><th>შემსრულებელი</th>
             <th>დეტალური აღწერა</th><th>სურათი</th>
             <th>კონტრზომები (რა უნდა გავაკეთოთ?)</th>
             <th>ვის მიერ</th><th>ვადა</th><th>სტატუსი</th><th>კომენტარი</th>
@@ -277,7 +277,7 @@ td[contenteditable]:focus{outline:2px solid var(--blu);outline-offset:-1px;backg
         </div>
       </div>
 
-      <div class="bpc" id="bp-law"><div id="lawc"></div></div>
+      <div class="bpc" id="bp-law"><div id="aiLaw"></div><div id="lawc"></div></div>
 
       <div class="bpc" id="bp-mat">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
@@ -291,6 +291,7 @@ td[contenteditable]:focus{outline:2px solid var(--blu);outline-offset:-1px;backg
               <tr><th>მცირე (1)</th><td class="mVL">VL</td><td class="mL">L</td><td class="mM">M</td><td class="mM">M</td></tr>
             </table>
             <div style="font-size:9px;color:var(--t2);margin-top:6px;line-height:1.7"><b>VH</b> — სასწ. შეჩ. · <b>H</b> — 24სთ · <b>M</b> — 7 დღე · <b>L/VL</b> — გეგმური</div>
+            <div id="aiMatrix"></div>
           </div>
           <div>
             <div style="font-size:10px;font-weight:700;color:var(--bhdrd);margin-bottom:8px">კონტროლის იერარქია (ISO 45001)</div>
@@ -519,6 +520,16 @@ function renderPhotos(){
 }
 
 function renderLaw(){
+  // AI-ს მიერ მითითებული ნორმა (კონკრეტული ჩანაწერი)
+  const r=(recs.concat(arch)).find(x=>x.id===aid);
+  const al=document.getElementById('aiLaw');
+  if(al){
+    al.innerHTML=(r&&r.law)?`
+      <div style="background:#FFF8E1;border:1px solid #FFE082;border-left:3px solid #FFA000;border-radius:5px;padding:9px 11px;margin-bottom:12px">
+        <div style="font-size:10px;font-weight:700;color:#8a6d00;margin-bottom:3px">🤖 AI-ს მიერ მითითებული შესაძლო ნორმა — ჩანაწერი #${r.no}</div>
+        <div style="font-size:11px;color:var(--t1);line-height:1.5">${r.law}</div>
+      </div>`:'';
+  }
   const secs=[
     {t:'🇬🇪 საქართველოს კანონმდებლობა',items:LAWS.geo,cls:'ge'},
     {t:'🌐 ISO / IEC სტანდარტები',items:LAWS.iso,cls:'iso'},
@@ -531,6 +542,27 @@ function renderLaw(){
     </div>`).join('');
 }
 
+function renderAiMatrix(){
+  const el=document.getElementById('aiMatrix');
+  if(!el) return;
+  const r=(recs.concat(arch)).find(x=>x.id===aid);
+  const m=r&&r.matrix;
+  if(!m||!m.probability||!m.severity){ el.innerHTML=''; return; }
+  const score=m.score||(m.probability*m.severity);
+  const band=score>=15?{t:'მაღალი (H)',c:'#D32F2F',bg:'#FFEBEE'}:score>=6?{t:'საშუალო (M)',c:'#F57C00',bg:'#FFF3E0'}:{t:'დაბალი (L)',c:'#388E3C',bg:'#E8F5E9'};
+  el.innerHTML=`
+    <div style="background:${band.bg};border:1px solid ${band.c}55;border-left:3px solid ${band.c};border-radius:5px;padding:9px 11px;margin-top:12px">
+      <div style="font-size:10px;font-weight:700;color:${band.c};margin-bottom:5px">🤖 AI-ს შეფასება — ჩანაწერი #${r.no}</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--t1)">
+        <span>ალბათობა: <b>${m.probability}/5</b></span>
+        <span>სიმძიმე: <b>${m.severity}/5</b></span>
+        <span>ქულა: <b>${score}</b></span>
+        <span>დონე: <b style="color:${band.c}">${band.t}</b></span>
+      </div>
+      <div style="font-size:9px;color:var(--t2);margin-top:5px">გადასამოწმებელია სპეციალისტის მიერ.</div>
+    </div>`;
+}
+
 function renderHier(){
   document.getElementById('hier').innerHTML=HIER.map(h=>`
     <div style="display:flex;gap:7px;align-items:flex-start;margin-bottom:5px;padding:6px 8px;background:#fff;border:1px solid var(--bui);border-radius:4px;border-left:3px solid ${h.c}">
@@ -539,7 +571,7 @@ function renderHier(){
     </div>`).join('');
 }
 
-function renderAll(){ renderSB(); renderTbl(); renderPhotos(); renderLaw(); renderHier(); }
+function renderAll(){ renderSB(); renderTbl(); renderPhotos(); renderLaw(); renderHier(); renderAiMatrix(); }
 
 // ═══════ ACTIONS ═══════
 function sel(id, isArchive){
@@ -619,11 +651,17 @@ async function analyzePhotos(id){
     return m?{mediaType:m[1],data:m[2]}:null;
   }).filter(Boolean);
 
+  // კონტექსტი AI-სთვის: ობიექტი (header) + ადგილი (ჩანაწერი)
+  const context={
+    object:(document.getElementById('hobj')?.value||'').trim(),
+    location:(r.loc||'').trim()
+  };
+
   try{
     const resp=await fetch(HSE_WORKER_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({images})
+      body:JSON.stringify({images,context})
     });
     const data=await resp.json();
     if(!resp.ok||data.error){
@@ -631,11 +669,22 @@ async function analyzePhotos(id){
       toast('შეცდომა: '+(data.error||resp.status),'');
       return;
     }
-    if(data.desc) r.desc=data.desc;
-    if(data.cnt)  r.cnt=data.cnt;
+    // ── დეტალური აღწერის აწყობა desc ველში ──
+    let descParts=[];
+    if(data.desc) descParts.push(data.desc);
+    if(Array.isArray(data.violations)&&data.violations.length){
+      descParts.push('\n⚠️ გამოვლენილი დარღვევები:\n• '+data.violations.join('\n• '));
+    }
+    if(data.consequences) descParts.push('\n🩹 შესაძლო შედეგი: '+data.consequences);
+    if(data.ppe)          descParts.push('\n🦺 საჭირო დაცვა: '+data.ppe);
+    if(descParts.length)  r.desc=descParts.join('\n');
+
+    if(data.cnt) r.cnt=data.cnt;
+    if(data.law) r.law=data.law;                 // კანონმდებლობა (C)
+    if(data.matrix) r.matrix=data.matrix;         // რისკ-მატრიცა (B)
     if(data.lv && ['H','M','L'].includes(data.lv)) r.lv=data.lv;
     save(); renderAll();
-    toast('✓ ავტომატურად შეივსო','ok');
+    toast('✓ დეტალურად შეივსო','ok');
   }catch(e){
     console.error(e);
     toast('ქსელის შეცდომა','');
@@ -731,8 +780,8 @@ function confirmAction(){
 
 // ═══════ EXPORT ═══════
 function doExport(){
-  const h=['No','Date','ადგილი','შემსრ.','აღწერა','კონტრზომები','ვის მიერ','ვადა','სტატ.','კომ.','რისკი'];
-  const rows=recs.map(r=>[r.no,r.date,r.loc,r.exec,r.desc,r.cnt,r.who,r.when,sl[r.stat]||r.stat,r.cmt,lv[r.lv]||r.lv]);
+  const h=['No','Date','ადგილი','შემსრ.','აღწერა','კონტრზომები','კანონი','ვის მიერ','ვადა','სტატ.','კომ.','რისკი'];
+  const rows=recs.map(r=>[r.no,r.date,r.loc,r.exec,r.desc,r.cnt,r.law||'',r.who,r.when,sl[r.stat]||r.stat,r.cmt,lv[r.lv]||r.lv]);
   const csv=[h,...rows].map(r=>r.map(c=>'"'+(c||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
@@ -826,6 +875,8 @@ function toast(msg,type=''){
 
 // ═══════ INIT ═══════
 document.getElementById('hdate').value=new Date().toISOString().slice(0,10);
+document.getElementById('hexec').value='თამაზ ჭყონია';
+document.getElementById('hobj').value='ქარხანა';
 renderAll();
 </script>
 </body>
