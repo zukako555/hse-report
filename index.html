@@ -194,6 +194,9 @@ td[contenteditable]:focus{outline:2px solid var(--blu);outline-offset:-1px;backg
   <div class="tstat W"><div class="tstat-v" id="cM">0</div><div class="tstat-l">საშუალო</div></div>
   <div class="tstat G"><div class="tstat-v" id="cL">0</div><div class="tstat-l">დაბალი</div></div>
   <button class="tbtn" onclick="doExport()"><svg viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3.5 5.5L6 8l2.5-2.5M1.5 10h9" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg>CSV</button>
+  <button class="tbtn" onclick="doBackup()" title="სრული backup (ფოტოებითურთ) — JSON ფაილი"><svg viewBox="0 0 12 12" fill="none"><path d="M2 2h8v8H2zM2 4.5h8M4.5 2v2.5" stroke="white" stroke-width="1.1" stroke-linejoin="round"/><path d="M6 6v3M4.5 7.5L6 9l1.5-1.5" stroke="white" stroke-width="1.1" stroke-linecap="round"/></svg>Backup</button>
+  <button class="tbtn" onclick="document.getElementById('restoreInput').click()" title="backup-ის ჩატვირთვა JSON ფაილიდან"><svg viewBox="0 0 12 12" fill="none"><path d="M6 9V2M3.5 4.5L6 2l2.5 2.5M1.5 10h9" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg>ჩატვირთვა</button>
+  <input type="file" id="restoreInput" accept=".json,application/json" style="display:none" onchange="doRestore(event)">
   <button class="tbtn" onclick="window.print()"><svg viewBox="0 0 12 12" fill="none"><rect x="1.5" y="4" width="9" height="6" rx="1" stroke="white" stroke-width="1.2"/><path d="M3.5 4V2h5v2M3.5 8.5h5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>ბეჭდვა</button>
 </div>
 
@@ -377,7 +380,7 @@ const HIER=[
 
 // ═══════ CLAUDE PROXY ═══════
 // ⚠️ შეცვალე შენი Cloudflare Worker-ის მისამართით
-const HSE_WORKER_URL = 'https://hse-proxy.tamaztchkonia.workers.dev';
+const HSE_WORKER_URL = 'https://hse-proxy.YOUR-NAME.workers.dev';
 
 // ═══════ STATE ═══════
 let recs = JSON.parse(localStorage.getItem('hse_recs_v2')||'null') || INIT.map(r=>({...r}));
@@ -420,11 +423,12 @@ function renderSB(){
     return;
   }
   const isArch=flt==='archive';
-  document.getElementById('sbl').innerHTML=fr.map(r=>`
+  const purgeBar=isArch&&arch.length?`<div style="padding:4px 2px 8px"><button onclick="askPurgeAll()" style="width:100%;padding:6px;font-size:10px;font-weight:700;border:1px solid var(--red);border-radius:5px;background:var(--rbg);color:var(--red);cursor:pointer;font-family:inherit">🗑 არქივის გასუფთავება (${arch.length})</button></div>`:'';
+  document.getElementById('sbl').innerHTML=purgeBar+fr.map(r=>`
     <div class="sbi${r.id===aid?' on':''}${isArch?' archived':''}" onclick="sel(${r.id},${isArch})">
       <div class="sbi-acts">
         ${isArch
-          ?`<span class="sact restore" title="აღდგენა" onclick="event.stopPropagation();askRestore(${r.id})">↩</span>`
+          ?`<span class="sact restore" title="აღდგენა" onclick="event.stopPropagation();askRestore(${r.id})">↩</span><span class="sact" title="საბოლოო წაშლა" onclick="event.stopPropagation();askPurge(${r.id})">🗑</span>`
           :`<span class="sact" title="წაშლა → არქივი" onclick="event.stopPropagation();askDelete(${r.id})">🗑</span>`
         }
       </div>
@@ -475,7 +479,7 @@ function renderTbl(){
           <option value="L"${r.lv==='L'?' selected':''}>🟢 დაბ</option>
         </select>
         ${isArch
-          ?`<button class="delbtn rest" onclick="event.stopPropagation();askRestore(${r.id})">↩ აღდგენა</button>`
+          ?`<button class="delbtn rest" onclick="event.stopPropagation();askRestore(${r.id})">↩ აღდგენა</button><button class="delbtn" onclick="event.stopPropagation();askPurge(${r.id})">🗑 წაშლა</button>`
           :`<button class="delbtn" onclick="event.stopPropagation();askDelete(${r.id})">🗑 წაშლა</button>`
         }
       </td>
@@ -695,6 +699,32 @@ function confirmAction(){
       save(); renderAll();
       toast('ჩანაწერი აღდგა','ok');
     }
+  } else if(pendingAction.type==='restoreBackup'){
+    const d=pendingAction.data;
+    recs=d.recs.map(r=>({...r}));
+    arch=Array.isArray(d.arch)?d.arch.map(r=>({...r})):[];
+    recs.forEach((r,i)=>r.no=i+1);
+    nid=Math.max(...recs.map(r=>r.id||0), ...arch.map(r=>r.id||0), 0)+1;
+    aid=null;
+    if(d.meta){
+      if(d.meta.exec!=null) document.getElementById('hexec').value=d.meta.exec;
+      if(d.meta.date) document.getElementById('hdate').value=d.meta.date;
+      if(d.meta.obj!=null) document.getElementById('hobj').value=d.meta.obj;
+    }
+    save(); renderAll();
+    toast('✓ Backup ჩაიტვირთა ('+recs.length+' ჩანაწერი)','ok');
+  } else if(pendingAction.type==='purge'){
+    const idx=arch.findIndex(x=>x.id===pendingAction.id);
+    if(idx>=0){
+      arch.splice(idx,1);
+      if(aid===pendingAction.id) aid=null;
+      save(); renderAll();
+      toast('ჩანაწერი სამუდამოდ წაიშალა','ok');
+    }
+  } else if(pendingAction.type==='purgeAll'){
+    arch=[];
+    save(); renderAll();
+    toast('არქივი გასუფთავდა','ok');
   }
   closeConfirm();
 }
@@ -708,6 +738,73 @@ function doExport(){
   a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
   a.download='HSE_ანგარიში.csv'; a.click();
   toast('CSV ჩამოიტვირთა ✓','ok');
+}
+
+// ═══════ BACKUP / RESTORE (სრული მონაცემები ფოტოებითურთ) ═══════
+function doBackup(){
+  const data={
+    version:2,
+    exportedAt:new Date().toISOString(),
+    meta:{
+      exec:document.getElementById('hexec').value,
+      date:document.getElementById('hdate').value,
+      obj:document.getElementById('hobj').value
+    },
+    recs:recs,
+    arch:arch
+  };
+  const json=JSON.stringify(data,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  const d=new Date().toISOString().slice(0,10);
+  a.download='HSE_backup_'+d+'.json';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast('💾 Backup ჩამოიტვირთა ('+recs.length+' აქტ. + '+arch.length+' არქ.)','ok');
+}
+
+function doRestore(ev){
+  const file=ev.target.files&&ev.target.files[0];
+  ev.target.value='';
+  if(!file) return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    let data;
+    try{ data=JSON.parse(e.target.result); }
+    catch(err){ toast('არასწორი ფაილი — ვერ წაიკითხა JSON','err'); return; }
+    if(!data||!Array.isArray(data.recs)){ toast('ფაილში ჩანაწერები ვერ მოიძებნა','err'); return; }
+    pendingAction={type:'restoreBackup',data};
+    document.getElementById('ctitle').textContent='⬆ Backup-ის ჩატვირთვა';
+    const n1=data.recs.length, n2=(data.arch||[]).length;
+    document.getElementById('cmsg').textContent=`ჩაიტვირთება ${n1} აქტიური + ${n2} არქივირებული ჩანაწერი. ამჟამინდელი მონაცემები ჩანაცვლდება. გაგრძელება?`;
+    const btn=document.getElementById('cyes');
+    btn.textContent='⬆ ჩატვირთვა'; btn.className='cyes green';
+    document.getElementById('cmod').classList.add('on');
+  };
+  rd.readAsText(file);
+}
+
+// ═══════ არქივიდან საბოლოო წაშლა ═══════
+function askPurge(id){
+  const r=arch.find(x=>x.id===id);
+  if(!r) return;
+  pendingAction={type:'purge',id};
+  document.getElementById('ctitle').textContent='🗑 საბოლოო წაშლა';
+  document.getElementById('cmsg').textContent=`ჩანაწერი #${r.no} "${r.loc||'უსახელო'}" სამუდამოდ წაიშლება არქივიდან. ეს მოქმედება შეუქცევადია!`;
+  const btn=document.getElementById('cyes');
+  btn.textContent='🗑 სამუდამოდ წაშლა'; btn.className='cyes';
+  document.getElementById('cmod').classList.add('on');
+}
+
+function askPurgeAll(){
+  if(!arch.length){ toast('არქივი ცარიელია',''); return; }
+  pendingAction={type:'purgeAll'};
+  document.getElementById('ctitle').textContent='🗑 არქივის გასუფთავება';
+  document.getElementById('cmsg').textContent=`არქივის ყველა ${arch.length} ჩანაწერი სამუდამოდ წაიშლება. ეს მოქმედება შეუქცევადია!`;
+  const btn=document.getElementById('cyes');
+  btn.textContent='🗑 ყველას წაშლა'; btn.className='cyes';
+  document.getElementById('cmod').classList.add('on');
 }
 
 // ═══════ UI HELPERS ═══════
