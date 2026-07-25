@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HSE ანგარიში — უსაფრთხოება</title>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -77,6 +76,7 @@ body{font-family:'Noto Sans Georgian',sans-serif;background:var(--bg);color:#1F2
 .sbadd-btn{width:100%;padding:7px;font-size:11px;font-weight:600;border:1.5px dashed var(--bui);border-radius:6px;background:transparent;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;font-family:inherit;transition:all .13s}
 .sbadd-btn:hover{border-color:var(--blu);color:var(--blu);background:var(--blubg)}
 
+/* სამოქმედო ღილაკები sidebar-ზე */
 .sbi-acts{display:none;position:absolute;top:4px;right:4px;gap:3px}
 .sbi:hover .sbi-acts{display:flex}
 .sact{width:20px;height:20px;border-radius:4px;border:1px solid var(--bui);background:#fff;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;transition:all .12s}
@@ -114,6 +114,7 @@ td[contenteditable]:focus{outline:2px solid var(--blu);outline-offset:-1px;backg
 .addrow{padding:6px;border:2px solid var(--bord);border-top:none;background:#F8FAFD}
 .addrow button{font-size:10px;padding:5px 12px;border:1.5px dashed var(--bordt);border-radius:4px;background:transparent;color:var(--bhdrd);cursor:pointer;font-weight:600;font-family:inherit}
 .addrow button:hover{background:var(--blubg);border-color:var(--bord)}
+/* წაშლის ღილაკი ცხრილში */
 .delbtn{font-size:8px;padding:2px 5px;border:1px solid var(--bui);border-radius:3px;background:#fff;color:var(--red);cursor:pointer;font-family:inherit;margin-top:3px;display:inline-block}
 .delbtn:hover{background:var(--rbg);border-color:var(--red)}
 .delbtn.rest{color:var(--grn)}
@@ -128,6 +129,7 @@ td[contenteditable]:focus{outline:2px solid var(--blu);outline-offset:-1px;backg
 .bpc::-webkit-scrollbar{width:3px}
 .bpc::-webkit-scrollbar-thumb{background:var(--bui);border-radius:2px}
 
+/* ფოტო პანელი */
 .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
 .photo-card{border:1px solid var(--bui);border-radius:6px;overflow:hidden;position:relative;background:#FAFBFC;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .photo-card img{width:100%;height:100%;object-fit:cover}
@@ -162,6 +164,7 @@ td[contenteditable]:focus{outline:2px solid var(--blu);outline-offset:-1px;backg
 .modal img{max-width:90vw;max-height:85vh;border-radius:6px;box-shadow:0 8px 40px rgba(0,0,0,.5)}
 .modal .cx{position:absolute;top:14px;right:18px;color:#fff;font-size:28px;cursor:pointer;line-height:1}
 
+/* confirm dialog */
 .cmod{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center}
 .cmod.on{display:flex}
 .cbox{background:#fff;border-radius:10px;padding:20px;max-width:380px;width:90%;box-shadow:0 12px 50px rgba(0,0,0,.3);text-align:center}
@@ -190,9 +193,9 @@ td[contenteditable]:focus{outline:2px solid var(--blu);outline-offset:-1px;backg
   <div class="tstat D"><div class="tstat-v" id="cH">0</div><div class="tstat-l">მაღალი</div></div>
   <div class="tstat W"><div class="tstat-v" id="cM">0</div><div class="tstat-l">საშუალო</div></div>
   <div class="tstat G"><div class="tstat-v" id="cL">0</div><div class="tstat-l">დაბალი</div></div>
-  <button class="tbtn" onclick="doExport()"><svg viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3.5 5.5L6 8l2.5-2.5M1.5 10h9" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg>Excel</button>
-  <button class="tbtn" onclick="doBackup()" title="სრული backup"><svg viewBox="0 0 12 12" fill="none"><path d="M2 2h8v8H2zM2 4.5h8M4.5 2v2.5" stroke="white" stroke-width="1.1" stroke-linejoin="round"/><path d="M6 6v3M4.5 7.5L6 9l1.5-1.5" stroke="white" stroke-width="1.1" stroke-linecap="round"/></svg>Backup</button>
-  <button class="tbtn" onclick="document.getElementById('restoreInput').click()" title="backup-ის ჩატვირთვა"><svg viewBox="0 0 12 12" fill="none"><path d="M6 9V2M3.5 4.5L6 2l2.5 2.5M1.5 10h9" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg>ჩატვირთვა</button>
+  <button class="tbtn" onclick="doExport()"><svg viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3.5 5.5L6 8l2.5-2.5M1.5 10h9" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg>CSV</button>
+  <button class="tbtn" onclick="doBackup()" title="სრული backup (ფოტოებითურთ) — JSON ფაილი"><svg viewBox="0 0 12 12" fill="none"><path d="M2 2h8v8H2zM2 4.5h8M4.5 2v2.5" stroke="white" stroke-width="1.1" stroke-linejoin="round"/><path d="M6 6v3M4.5 7.5L6 9l1.5-1.5" stroke="white" stroke-width="1.1" stroke-linecap="round"/></svg>Backup</button>
+  <button class="tbtn" onclick="document.getElementById('restoreInput').click()" title="backup-ის ჩატვირთვა JSON ფაილიდან"><svg viewBox="0 0 12 12" fill="none"><path d="M6 9V2M3.5 4.5L6 2l2.5 2.5M1.5 10h9" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg>ჩატვირთვა</button>
   <input type="file" id="restoreInput" accept=".json,application/json" style="display:none" onchange="doRestore(event)">
   <button class="tbtn" onclick="window.print()"><svg viewBox="0 0 12 12" fill="none"><rect x="1.5" y="4" width="9" height="6" rx="1" stroke="white" stroke-width="1.2"/><path d="M3.5 4V2h5v2M3.5 8.5h5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>ბეჭდვა</button>
 </div>
@@ -344,7 +347,7 @@ const INIT=[
 
 const LAWS={
   geo:[
-    {code:'N2070 — 2018',art:'კანონი „შრომის უსაფრთ."',desc:'სამ. ადგ. უსაფრთ., საფ. შეფასება, დამს. ვალდ., პრევენცია.'},
+    {code:'N2070 — 2018',art:'კანონი „შრომის უსაფრთხ."',desc:'სამ. ადგ. უსაფრთ., საფ. შეფასება, დამს. ვალდ., პრევენცია.'},
     {code:'შრ. კოდ. მ.6',art:'შრომის კოდექსი',desc:'დამს. ვალდ.: უსაფრთ. სამ. ადგ., ინსტრუქტ., იდს-ის მიწოდება.'},
     {code:'N217 — 2019',art:'ტექ. ნორმები',desc:'განათ., ვენტ., ტემპ., ელ. უსაფრთ., სანიტ. მინ. მოთხ.'},
     {code:'N415',art:'ფიზ. ფაქტ. ნორმები',desc:'ხმ., ვიბრ., ტემპ., ტენ., განათ. — დასაშვები ლიმიტები.'},
@@ -376,8 +379,11 @@ const HIER=[
   {e:'🦺',l:'5. იდს (PPE)',d:'ბოლო საშ. — ინდ. დაც.',c:'#185FA5'},
 ];
 
+// ═══════ CLAUDE PROXY ═══════
+// ⚠️ შეცვალე შენი Cloudflare Worker-ის მისამართით
 const HSE_WORKER_URL = 'https://hse-proxy.tamaztchkonia.workers.dev';
 
+// ═══════ STATE ═══════
 let recs = JSON.parse(localStorage.getItem('hse_recs_v2')||'null') || INIT.map(r=>({...r}));
 let arch = JSON.parse(localStorage.getItem('hse_arch_v2')||'[]');
 let nid = Math.max(...recs.map(r=>r.id), ...arch.map(r=>r.id), 0)+1;
@@ -403,6 +409,7 @@ function filt(){
   return list.filter(r=>r.stat==='pend');
 }
 
+// ═══════ RENDER ═══════
 function renderSB(){
   const fr=filt();
   const active=activeRecs();
@@ -513,6 +520,7 @@ function renderPhotos(){
 }
 
 function renderLaw(){
+  // AI-ს მიერ მითითებული ნორმა (კონკრეტული ჩანაწერი)
   const r=(recs.concat(arch)).find(x=>x.id===aid);
   const al=document.getElementById('aiLaw');
   if(al){
@@ -565,6 +573,7 @@ function renderHier(){
 
 function renderAll(){ renderSB(); renderTbl(); renderPhotos(); renderLaw(); renderHier(); renderAiMatrix(); }
 
+// ═══════ ACTIONS ═══════
 function sel(id, isArchive){
   aid=id;
   document.getElementById('emp').style.display='none';
@@ -574,7 +583,7 @@ function sel(id, isArchive){
 }
 
 function addRow(){
-  if(flt==='archive'){setF('all',document.querySelector('.fb'));}
+  if(flt==='archive'){setF('all',document.querySelector('.fb'));} // გადავიდე აქტიურზე
   const r={id:nid++,no:recs.length+1,date:new Date().toLocaleDateString('ka-GE'),
     loc:'',exec:document.getElementById('hexec').value||'',desc:'',imgs:[],cnt:'',who:'',when:'',stat:'pend',cmt:'',lv:'M'};
   recs.push(r); save();
@@ -606,3 +615,267 @@ function setF(f,btn){
 
 function upd(id,f,v,isArch){
   if(isArch) return;
+  const r=recs.find(x=>x.id===id);
+  if(r){r[f]=v.trim(); save(); renderSB();}
+}
+
+// ═══════ PHOTOS ═══════
+function addPhotos(id,files){
+  const list=flt==='archive'?arch:recs;
+  const r=list.find(x=>x.id===id);
+  if(!r)return;
+  r.imgs=r.imgs||[];
+  let loaded=0;
+  Array.from(files).forEach(file=>{
+    const rd=new FileReader();
+    rd.onload=e=>{
+      r.imgs.push(e.target.result);
+      loaded++;
+      if(loaded===files.length){save(); renderAll(); toast(loaded+' ფოტო დაემატა','ok');}
+    };
+    rd.readAsDataURL(file);
+  });
+}
+
+// ═══════ CLAUDE ANALYSIS (ყველა ფოტო ერთად) ═══════
+async function analyzePhotos(id){
+  const r=recs.find(x=>x.id===id);
+  if(!r){return;}
+  if(!r.imgs||!r.imgs.length){toast('ჯერ ატვირთე ფოტო(ები)','');return;}
+
+  toast('🤖 Claude აანალიზებს '+r.imgs.length+' ფოტოს...','');
+
+  // dataURL -> { data, mediaType }
+  const images=r.imgs.map(src=>{
+    const m=src.match(/^data:(image\/[a-zA-Z+]+);base64,(.*)$/);
+    return m?{mediaType:m[1],data:m[2]}:null;
+  }).filter(Boolean);
+
+  // კონტექსტი AI-სთვის: ობიექტი (header) + ადგილი (ჩანაწერი)
+  const context={
+    object:(document.getElementById('hobj')?.value||'').trim(),
+    location:(r.loc||'').trim()
+  };
+
+  try{
+    const resp=await fetch(HSE_WORKER_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({images,context})
+    });
+    const data=await resp.json();
+    if(!resp.ok||data.error){
+      console.error(data);
+      toast('შეცდომა: '+(data.error||resp.status),'');
+      return;
+    }
+    // ── დეტალური აღწერის აწყობა desc ველში ──
+    let descParts=[];
+    if(data.desc) descParts.push(data.desc);
+    if(Array.isArray(data.violations)&&data.violations.length){
+      descParts.push('\n⚠️ გამოვლენილი დარღვევები:\n• '+data.violations.join('\n• '));
+    }
+    if(data.consequences) descParts.push('\n🩹 შესაძლო შედეგი: '+data.consequences);
+    if(data.ppe)          descParts.push('\n🦺 საჭირო დაცვა: '+data.ppe);
+    if(descParts.length)  r.desc=descParts.join('\n');
+
+    if(data.cnt) r.cnt=data.cnt;
+    if(data.law) r.law=data.law;                 // კანონმდებლობა (C)
+    if(data.matrix) r.matrix=data.matrix;         // რისკ-მატრიცა (B)
+    if(data.lv && ['H','M','L'].includes(data.lv)) r.lv=data.lv;
+    save(); renderAll();
+    toast('✓ დეტალურად შეივსო','ok');
+  }catch(e){
+    console.error(e);
+    toast('ქსელის შეცდომა','');
+  }
+}
+
+function rmPhoto(id,idx){
+  const r=recs.find(x=>x.id===id);
+  if(!r||!r.imgs) return;
+  r.imgs.splice(idx,1);
+  save(); renderAll();
+  toast('ფოტო წაიშალა');
+}
+
+// ═══════ DELETE / ARCHIVE / RESTORE ═══════
+function askDelete(id){
+  const r=recs.find(x=>x.id===id);
+  if(!r) return;
+  pendingAction={type:'delete',id};
+  document.getElementById('ctitle').textContent='📦 არქივში გადატანა';
+  document.getElementById('cmsg').textContent=`ჩანაწერი #${r.no} "${r.loc||'უსახელო'}" გადავა არქივში. გაგრძელება?`;
+  const btn=document.getElementById('cyes');
+  btn.textContent='📦 არქივში'; btn.className='cyes';
+  document.getElementById('cmod').classList.add('on');
+}
+
+function askRestore(id){
+  const r=arch.find(x=>x.id===id);
+  if(!r) return;
+  pendingAction={type:'restore',id};
+  document.getElementById('ctitle').textContent='↩ აღდგენა';
+  document.getElementById('cmsg').textContent=`ჩანაწერი #${r.no} "${r.loc||'უსახელო'}" დაბრუნდეს აქტიურ სიაში?`;
+  const btn=document.getElementById('cyes');
+  btn.textContent='↩ აღდგენა'; btn.className='cyes green';
+  document.getElementById('cmod').classList.add('on');
+}
+
+function closeConfirm(){ document.getElementById('cmod').classList.remove('on'); pendingAction=null; }
+
+function confirmAction(){
+  if(!pendingAction) return;
+  if(pendingAction.type==='delete'){
+    const idx=recs.findIndex(x=>x.id===pendingAction.id);
+    if(idx>=0){
+      const [removed]=recs.splice(idx,1);
+      removed.archivedAt=new Date().toISOString();
+      arch.push(removed);
+      // ხელახლა დავანომროთ
+      recs.forEach((r,i)=>r.no=i+1);
+      if(aid===pendingAction.id) aid=null;
+      save(); renderAll();
+      toast('ჩანაწერი არქივში გადავიდა','ok');
+    }
+  } else if(pendingAction.type==='restore'){
+    const idx=arch.findIndex(x=>x.id===pendingAction.id);
+    if(idx>=0){
+      const [restored]=arch.splice(idx,1);
+      delete restored.archivedAt;
+      restored.no=recs.length+1;
+      recs.push(restored);
+      save(); renderAll();
+      toast('ჩანაწერი აღდგა','ok');
+    }
+  } else if(pendingAction.type==='restoreBackup'){
+    const d=pendingAction.data;
+    recs=d.recs.map(r=>({...r}));
+    arch=Array.isArray(d.arch)?d.arch.map(r=>({...r})):[];
+    recs.forEach((r,i)=>r.no=i+1);
+    nid=Math.max(...recs.map(r=>r.id||0), ...arch.map(r=>r.id||0), 0)+1;
+    aid=null;
+    if(d.meta){
+      if(d.meta.exec!=null) document.getElementById('hexec').value=d.meta.exec;
+      if(d.meta.date) document.getElementById('hdate').value=d.meta.date;
+      if(d.meta.obj!=null) document.getElementById('hobj').value=d.meta.obj;
+    }
+    save(); renderAll();
+    toast('✓ Backup ჩაიტვირთა ('+recs.length+' ჩანაწერი)','ok');
+  } else if(pendingAction.type==='purge'){
+    const idx=arch.findIndex(x=>x.id===pendingAction.id);
+    if(idx>=0){
+      arch.splice(idx,1);
+      if(aid===pendingAction.id) aid=null;
+      save(); renderAll();
+      toast('ჩანაწერი სამუდამოდ წაიშალა','ok');
+    }
+  } else if(pendingAction.type==='purgeAll'){
+    arch=[];
+    save(); renderAll();
+    toast('არქივი გასუფთავდა','ok');
+  }
+  closeConfirm();
+}
+
+// ═══════ EXPORT ═══════
+function doExport(){
+  const h=['No','Date','ადგილი','შემსრ.','აღწერა','კონტრზომები','კანონი','ვის მიერ','ვადა','სტატ.','კომ.','რისკი'];
+  const rows=recs.map(r=>[r.no,r.date,r.loc,r.exec,r.desc,r.cnt,r.law||'',r.who,r.when,sl[r.stat]||r.stat,r.cmt,lv[r.lv]||r.lv]);
+  const csv=[h,...rows].map(r=>r.map(c=>'"'+(c||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download='HSE_ანგარიში.csv'; a.click();
+  toast('CSV ჩამოიტვირთა ✓','ok');
+}
+
+// ═══════ BACKUP / RESTORE (სრული მონაცემები ფოტოებითურთ) ═══════
+function doBackup(){
+  const data={
+    version:2,
+    exportedAt:new Date().toISOString(),
+    meta:{
+      exec:document.getElementById('hexec').value,
+      date:document.getElementById('hdate').value,
+      obj:document.getElementById('hobj').value
+    },
+    recs:recs,
+    arch:arch
+  };
+  const json=JSON.stringify(data,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  const d=new Date().toISOString().slice(0,10);
+  a.download='HSE_backup_'+d+'.json';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast('💾 Backup ჩამოიტვირთა ('+recs.length+' აქტ. + '+arch.length+' არქ.)','ok');
+}
+
+function doRestore(ev){
+  const file=ev.target.files&&ev.target.files[0];
+  ev.target.value='';
+  if(!file) return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    let data;
+    try{ data=JSON.parse(e.target.result); }
+    catch(err){ toast('არასწორი ფაილი — ვერ წაიკითხა JSON','err'); return; }
+    if(!data||!Array.isArray(data.recs)){ toast('ფაილში ჩანაწერები ვერ მოიძებნა','err'); return; }
+    pendingAction={type:'restoreBackup',data};
+    document.getElementById('ctitle').textContent='⬆ Backup-ის ჩატვირთვა';
+    const n1=data.recs.length, n2=(data.arch||[]).length;
+    document.getElementById('cmsg').textContent=`ჩაიტვირთება ${n1} აქტიური + ${n2} არქივირებული ჩანაწერი. ამჟამინდელი მონაცემები ჩანაცვლდება. გაგრძელება?`;
+    const btn=document.getElementById('cyes');
+    btn.textContent='⬆ ჩატვირთვა'; btn.className='cyes green';
+    document.getElementById('cmod').classList.add('on');
+  };
+  rd.readAsText(file);
+}
+
+// ═══════ არქივიდან საბოლოო წაშლა ═══════
+function askPurge(id){
+  const r=arch.find(x=>x.id===id);
+  if(!r) return;
+  pendingAction={type:'purge',id};
+  document.getElementById('ctitle').textContent='🗑 საბოლოო წაშლა';
+  document.getElementById('cmsg').textContent=`ჩანაწერი #${r.no} "${r.loc||'უსახელო'}" სამუდამოდ წაიშლება არქივიდან. ეს მოქმედება შეუქცევადია!`;
+  const btn=document.getElementById('cyes');
+  btn.textContent='🗑 სამუდამოდ წაშლა'; btn.className='cyes';
+  document.getElementById('cmod').classList.add('on');
+}
+
+function askPurgeAll(){
+  if(!arch.length){ toast('არქივი ცარიელია',''); return; }
+  pendingAction={type:'purgeAll'};
+  document.getElementById('ctitle').textContent='🗑 არქივის გასუფთავება';
+  document.getElementById('cmsg').textContent=`არქივის ყველა ${arch.length} ჩანაწერი სამუდამოდ წაიშლება. ეს მოქმედება შეუქცევადია!`;
+  const btn=document.getElementById('cyes');
+  btn.textContent='🗑 ყველას წაშლა'; btn.className='cyes';
+  document.getElementById('cmod').classList.add('on');
+}
+
+// ═══════ UI HELPERS ═══════
+function bpTab(id,btn){
+  document.querySelectorAll('.bptab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.bpc').forEach(c=>c.classList.remove('on'));
+  document.getElementById('bp-'+id).classList.add('on');
+}
+
+function openM(e,src){e.stopPropagation();document.getElementById('imsrc').src=src;document.getElementById('imod').classList.add('on');}
+function closeM(){document.getElementById('imod').classList.remove('on');}
+
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast on'+(type?' '+type:'');
+  setTimeout(()=>{t.className='toast';},3000);
+}
+
+// ═══════ INIT ═══════
+document.getElementById('hdate').value=new Date().toISOString().slice(0,10);
+renderAll();
+</script>
+</body>
+</html>
